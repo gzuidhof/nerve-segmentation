@@ -1,4 +1,4 @@
 mogrify -path ./train_resized -gravity center -crop +70+0 -background black -extent 572x572 ./train/*
 
 mogrify -path ./train_smaller -gravity center -crop +40+0 -resize 224x224 ./train/*
-mogrify -path ./train_tiny -gravity center -crop +40+0 -resize 176x176 ./train/*
+mogrify -path ./train_tiny -gravity center -crop +40+0 -resize 172x172 ./train/*

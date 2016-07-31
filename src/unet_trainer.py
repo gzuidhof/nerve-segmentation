@@ -46,8 +46,8 @@ class UNetTrainer(trainer.Trainer):
             metrics.append([err, l2_loss, acc, dice])
             metrics.append_prediction(true, prob_b)
 
-            if i % 4 == 0:
-                im = np.hstack((
+            if i % 8 == 0:
+                im = np.vstack((
                      true[:OUTPUT_SIZE[0]*OUTPUT_SIZE[1]].reshape(*OUTPUT_SIZE),
                      prob[:OUTPUT_SIZE[0]*OUTPUT_SIZE[1]][:,1].reshape(*OUTPUT_SIZE)))
 
