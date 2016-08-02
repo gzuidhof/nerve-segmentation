@@ -32,6 +32,7 @@ class Params():
         self.FILENAMES_VALIDATION = cf.get('dataset','filenames_validation')
         self.DATA_FOLDER = cf.get('dataset','data_folder')
         self.PAD_TOP = cf.getint('dataset', 'pad_top')
+        self.PAD_RIGHT = cf.getint('dataset', 'pad_right')
 
         # Network
         self.ARCHITECTURE = cf.get('network', 'architecture')

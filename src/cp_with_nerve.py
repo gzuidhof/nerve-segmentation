@@ -10,7 +10,7 @@ if __name__ == "__main__":
     filenames = filter(lambda x: 'mask' not in x, filenames)
     util.make_dir_if_not_present('../data/train_smaller_nonempty')
 
-    name='smaller'
+    name = 'smaller'
 
     for f in filenames:
         mask_f = dataset.to_mask_path(f)

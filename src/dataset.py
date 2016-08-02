@@ -40,8 +40,8 @@ def get_image(filename, deterministic):
 
     img = np.array(img, dtype=np.float32)
 
-    img = cv2.copyMakeBorder(img, P.PAD_TOP, 0, 0, 0, cv2.BORDER_REFLECT)
-    truth = cv2.copyMakeBorder(truth, P.PAD_TOP, 0, 0, 0, cv2.BORDER_CONSTANT,value=0)
+    img = cv2.copyMakeBorder(img, P.PAD_TOP, 0, 0, P.PAD_RIGHT, cv2.BORDER_REFLECT)
+    truth = cv2.copyMakeBorder(truth, P.PAD_TOP, 0, 0, P.PAD_RIGHT, cv2.BORDER_CONSTANT,value=0)
 
     if P.AUGMENT and not deterministic:
         truth = np.array(truth, dtype=np.float32)
