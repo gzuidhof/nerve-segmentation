@@ -34,7 +34,7 @@ def augment(images):
 
         if CV2_AVAILABLE:
             #image = image.transpose(1,2,0)
-            image = cv2.warpAffine(image, M, pixels)
+            image = cv2.warpAffine(image, M, pixels, borderMode=cv2.BORDER_REFLECT_101)
             if random_flip:
                 image = cv2.flip(image, 1)
             #image = image.transpose(2,0,1)
