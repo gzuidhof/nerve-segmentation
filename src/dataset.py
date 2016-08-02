@@ -7,6 +7,9 @@ from params import params as P
 import loss_weighting
 import util
 from augment import augment
+import cv2
+import joblib
+import glob
 
 def to_mask_path(f_image):
     # Convert an image file path into a corresponding mask file path
@@ -36,11 +39,16 @@ def get_image(filename, deterministic):
     truth = np.where(truth > 255/2,1,0)
 
     img = np.array(img, dtype=np.float32)
+
+    img = cv2.copyMakeBorder(img, P.PAD_TOP, 0, 0, 0, cv2.BORDER_REFLECT)
+    truth = cv2.copyMakeBorder(truth, P.PAD_TOP, 0, 0, 0, cv2.BORDER_CONSTANT,value=0)
+
     if P.AUGMENT and not deterministic:
         truth = np.array(truth, dtype=np.float32)
         img, truth = augment([img,truth])
         truth = np.array(np.round(truth),dtype=np.int64)
     
+
     img = pad_to_size(img, INPUT_SIZE, 0)
     truth = pad_to_size(truth, OUTPUT_SIZE, -1)
 
@@ -63,3 +71,20 @@ def load_images(filenames, deterministic=False):
     trth[trth<0] = 0
 
     return img, trth, w, filenames
+
+def images_for_split(split):
+    all_split_ids = joblib.load(os.path.join(P.DATA_FOLDER, 'splits.pkl'))
+    ids = all_split_ids[split] #IDs for this split
+
+    filenames = []
+    for id in ids:
+        fs = glob.glob(P.FILENAMES_TRAIN.replace('*','{}_*'.format(id)))
+        fs = filter(lambda x: 'mask' not in x, fs)
+        filenames += fs
+    return filenames
+
+def images_for_splits(splits):
+    result_set = []
+    for split in splits:
+        result_set += images_for_split(split)
+    return result_set
