@@ -13,7 +13,7 @@ except:
     print "OpenCV 2 NOT AVAILABLE, using skimage/scipy.ndimage instead"
 
 def augment(images):
-    pixels = (images[0].shape[0],images[0].shape[1])
+    pixels = (images[0].shape[1],images[0].shape[0])
     center = (pixels[0]/2.-0.5, pixels[1]/2.-0.5)
 
     random_flip = P.AUGMENTATION_PARAMS['flip'] and np.random.randint(2) == 1
@@ -31,7 +31,7 @@ def augment(images):
 
     for i in range(len(images)):
         image = images[i]
-
+        
         if CV2_AVAILABLE:
             #image = image.transpose(1,2,0)
             image = cv2.warpAffine(image, M, pixels, borderMode=cv2.BORDER_REFLECT_101)
@@ -50,5 +50,6 @@ def augment(images):
             #z = AffineTransform(scale=(2,2))
             #image = warp(image, z.params)
             shift(image, [shift_x,shift_y], output=image)
+            image[i] = image
 
     return images
