@@ -1,9 +1,9 @@
 import theano
 import theano.tensor as T
 import lasagne
-from lasagne.layers import InputLayer, Conv2DLayer, MaxPool2DLayer, batch_norm, DropoutLayer, GaussianNoiseLayer, DilatedConv2DLayer
-from lasagne.init import HeNormal
+from lasagne.layers import InputLayer, Conv2DLayer, MaxPool2DLayer, batch_norm, DropoutLayer, GaussianNoiseLayer
 from custom_layers import SpatialDropoutLayer
+from lasagne.init import HeNormal
 from lasagne import nonlinearities
 from lasagne.layers import ConcatLayer, Upscale2DLayer
 from lasagne.regularization import l2, regularize_network_params
@@ -16,19 +16,18 @@ def output_size_for_input(in_size, depth):
     in_size -= 4
     for _ in range(depth-1):
         in_size = in_size//2
-        in_size -= 4
+        in_size -= 6
     for _ in range(depth-1):
         in_size = in_size*2
-        in_size -= 2
+        in_size -= 4
     return in_size
 
 NET_DEPTH = P.DEPTH #Default 5
 INPUT_SIZE = np.array(P.INPUT_SIZE) #Default 512
 OUTPUT_SIZE = output_size_for_input(INPUT_SIZE, NET_DEPTH)
-print "OUTPUT SIZE ", OUTPUT_SIZE
 
 def filter_for_depth(depth):
-    return 2**(P.BRANCHING_FACTOR+depth)
+    return 2**(P.BRANCHING_FACTOR+depth)+4
 
 def define_network(input_var):
     batch_size = None
@@ -45,24 +44,16 @@ def define_network(input_var):
         incoming = net['input'] if depth == 0 else net['pool{}'.format(depth-1)]
 
         net['conv{}_1'.format(depth)] = Conv2DLayer(incoming,
-                                    num_filters=n_filters, filter_size=3, pad='same',
+                                    num_filters=n_filters, filter_size=3, pad='valid',
                                     W=HeNormal(gain='relu'),
                                     nonlinearity=nonlinearity)
-
-        if deepest:
-            net['conv{}_1'.format(depth)] = SpatialDropoutLayer(net['conv{}_1'.format(depth)], P.SPATIAL_DROPOUT) 
-
-        net['conv{}_2'.format(depth)] = DilatedConv2DLayer(net['conv{}_1'.format(depth)],
-                                    num_filters=n_filters, filter_size=3, pad='valid', dilation=(2,2),
+        net['conv{}_2'.format(depth)] = Conv2DLayer(net['conv{}_1'.format(depth)],
+                                    num_filters=n_filters, filter_size=3, pad='valid',
                                     W=HeNormal(gain='relu'),
                                     nonlinearity=nonlinearity)
-        if deepest:
-            net['conv{}_2'.format(depth)] = SpatialDropoutLayer(net['conv{}_2'.format(depth)], P.SPATIAL_DROPOUT) 
 
         if P.BATCH_NORMALIZATION:
             net['conv{}_2'.format(depth)] = batch_norm(net['conv{}_2'.format(depth)])
-
-        
 
         if not deepest:
             net['pool{}'.format(depth)] = MaxPool2DLayer(net['conv{}_2'.format(depth)], pool_size=2, stride=2)
@@ -77,11 +68,11 @@ def define_network(input_var):
                                         num_filters=n_filters, filter_size=2, stride=2,
                                         W=HeNormal(gain='relu'),
                                         nonlinearity=nonlinearity)
+
         if P.SPATIAL_DROPOUT > 0:
-            bridge_from = SpatialDropoutLayer(net['conv{}_2'.format(depth)], P.SPATIAL_DROPOUT*0.5)
+            bridge_from = SpatialDropoutLayer(net['conv{}_2'.format(depth)], P.SPATIAL_DROPOUT)
         else:
             bridge_from = net['conv{}_2'.format(depth)]
-
 
         net['bridge{}'.format(depth)] = ConcatLayer([
                                         net['upconv{}'.format(depth)],
@@ -89,7 +80,7 @@ def define_network(input_var):
                                         axis=1, cropping=[None, None, 'center', 'center'])
 
         net['_conv{}_1'.format(depth)] = Conv2DLayer(net['bridge{}'.format(depth)],
-                                        num_filters=n_filters, filter_size=3, pad='same',
+                                        num_filters=n_filters, filter_size=3, pad='valid',
                                         W=HeNormal(gain='relu'),
                                         nonlinearity=nonlinearity)
 
@@ -140,10 +131,10 @@ def score_metrics(out, target_var, weight_map, l2_loss=0):
 
     loss = lasagne.objectives.categorical_crossentropy(T.clip(prediction,_EPSILON,1-_EPSILON), target_flat)
     loss = loss * weight_flat
+    loss += -dice_score*0.75
+    loss += l2_loss
     loss = loss.mean()
     #loss += l2_loss
-    loss += -dice_score*3
-    loss += l2_loss
     #loss -= dice_score*0.4
 
     accuracy = T.mean(T.eq(prediction_binary, target_flat),

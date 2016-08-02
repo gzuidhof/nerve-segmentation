@@ -16,7 +16,7 @@ import os.path
 import theano
 import theano.tensor as T
 import lasagne
-import unet
+import unet as unet
 from unet import INPUT_SIZE, OUTPUT_SIZE
 
 class UNetTrainer(trainer.Trainer):
@@ -73,7 +73,7 @@ class UNetTrainer(trainer.Trainer):
 
             # And a full pass over the validation data:
             #Shuffling not really necessary..
-            np.random.shuffle(filenames_val)
+            #np.random.shuffle(filenames_val)
 
             val_gen = ParallelBatchIterator(val_generator, filenames_val, ordered=False,
                                                 batch_size=P.BATCH_SIZE_VALIDATION,
