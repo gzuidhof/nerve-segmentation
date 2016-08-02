@@ -26,11 +26,12 @@ class Params():
         self.CHANNELS = cf.getint('dataset','channels')
         self.N_CLASSES = cf.getint('dataset','n_classes')
 
-        self.SUBSET = None if cf.get('dataset','subset')=='None' else cf.getint('dataset','subset')
+        self.SUBSET = None if cf.get('dataset','subset')=='None' else cf.get('dataset','subset')
 
         self.FILENAMES_TRAIN = cf.get('dataset','filenames_train')
         self.FILENAMES_VALIDATION = cf.get('dataset','filenames_validation')
         self.DATA_FOLDER = cf.get('dataset','data_folder')
+        self.PAD_TOP = cf.getint('dataset', 'pad_top')
 
         # Network
         self.ARCHITECTURE = cf.get('network', 'architecture')
