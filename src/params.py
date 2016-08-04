@@ -70,7 +70,8 @@ class Params():
             'flip': cf.getboolean('augmentation', 'flip'),
             'zoom_range': (1.-cf.getfloat('augmentation', 'zoom'),1.+cf.getfloat('augmentation', 'zoom')),
             'rotation_range': (-cf.getfloat('augmentation', 'rotation'),cf.getfloat('augmentation', 'rotation')),
-            'translation_range': (-cf.getfloat('augmentation', 'translation'),cf.getfloat('augmentation', 'translation'))
+            'translation_range': (-cf.getfloat('augmentation', 'translation'),cf.getfloat('augmentation', 'translation')),
+            'elastic_transform': cf.getboolean('augmentation', 'elastic_transform')
         }
 
         # Misc

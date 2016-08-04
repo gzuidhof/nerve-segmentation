@@ -29,14 +29,17 @@ def pad_to_size(image, desired, pad_value):
     return image
 
 
-def get_image(filename, deterministic):
+def get_image(filename, deterministic, is_testset=False):
 
     mask_filename = to_mask_path(filename)
 
     img = scipy.misc.imread(filename)
 
-    truth = scipy.misc.imread(mask_filename)
-    truth = np.where(truth > 255/2,1,0)
+    if is_testset:
+        truth = np.zeros_like(img)
+    else:
+        truth = scipy.misc.imread(mask_filename)
+        truth = np.where(truth > 255/2,1,0)
 
     img = np.array(img, dtype=np.float32)
 
@@ -61,8 +64,8 @@ def get_image(filename, deterministic):
 
     return img, truth
 
-def load_images(filenames, deterministic=False):
-    zippies = [get_image(filename, deterministic) for filename in filenames]
+def load_images(filenames, deterministic=False, is_testset=False):
+    zippies = [get_image(filename, deterministic, is_testset) for filename in filenames]
     images, truths = zip(*zippies)
 
     img = np.concatenate(images,axis=0)
@@ -72,16 +75,25 @@ def load_images(filenames, deterministic=False):
 
     return img, trth, w, filenames
 
-def images_for_split(split):
+def images_for_split(split, prediction_set=False):
     all_split_ids = joblib.load(os.path.join(P.DATA_FOLDER, 'splits.pkl'))
     ids = all_split_ids[split] #IDs for this split
 
     filenames = []
     for id in ids:
-        fs = glob.glob(P.FILENAMES_TRAIN.replace('*','{}_*'.format(id)))
+        regex = P.FILENAMES_TRAIN.replace('*','{}_*'.format(id))
+        if prediction_set:
+            regex.replace('_nonempty','')
+        fs = glob.glob(regex)
         fs = filter(lambda x: 'mask' not in x, fs)
         filenames += fs
     return filenames
+
+def images_for_test():
+    filenames = glob.glob(P.FILENAMES_TRAIN.replace('train','test').replace('_nonempty',''))
+    filenames = filter(lambda x: 'mask' not in x, filenames)
+    return filenames
+    
 
 def images_for_splits(splits):
     result_set = []

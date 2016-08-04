@@ -39,11 +39,11 @@ for id in available:
 
 
     splits[s].append(id)
-    #print "K", s, 'gets', id
+    print "K", s, 'gets', id
 
     i+=1
     if i >= k:
-        down = not down
+        #down = not down
         i = 0
 
 split_ids = []
